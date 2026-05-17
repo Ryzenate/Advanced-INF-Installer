@@ -1,0 +1,7 @@
+{
+  "DriverRoot": "B:\\src_b2\\WORK\\NewWay2inf\\asuschipset\\Driversonly",
+  "DryRunStaging": true,
+  "DryRunRemoval": true,
+  "BackupBeforeDelete": false,
+  "VerboseToScreen": true
+}
