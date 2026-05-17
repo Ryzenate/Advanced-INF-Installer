@@ -1,0 +1,13 @@
+2026-05-17 11:25:27 [Info] Session started. Output directory: B:\src_b2\New_Way_to_INF_Install\OUTPUT\20260517_112526
+2026-05-17 11:25:30 [Info] Running with Administrator privileges.
+2026-05-17 11:25:33 [Info] Step 1: Enumerating all INF files under C:\Driver...
+2026-05-17 11:25:33 [Info] Found 6 INFs. Exported to B:\src_b2\New_Way_to_INF_Install\OUTPUT\20260517_112526\AllINFs.csv
+2026-05-17 11:25:45 [Info] Step 2: Staging drivers. DryRunStaging=True
+2026-05-17 11:26:03 [Info] DryRunStaging: Would stage C:\Driver\Audio_alc897\Realtek\Codec_9513\HDXACPWhite.inf
+2026-05-17 11:26:07 [Info] DryRunStaging: Would stage C:\Driver\Audio_alc897\Realtek\ExtRtk_9513\HDX_WhiteExt_RTK.inf
+2026-05-17 11:26:07 [Info] DryRunStaging: Would stage C:\Driver\Audio_alc897\Realtek\RealtekAPO_1096\RealtekAPO.inf
+2026-05-17 11:26:07 [Info] DryRunStaging: Would stage C:\Driver\Audio_alc897\Realtek\RealtekASIO_10\RealtekASIO.inf
+2026-05-17 11:26:07 [Info] DryRunStaging: Would stage C:\Driver\Audio_alc897\Realtek\RealtekHSA_293\RealtekHSA.inf
+2026-05-17 11:26:07 [Info] DryRunStaging: Would stage C:\Driver\Audio_alc897\Realtek\RealtekService_615\RealtekService.inf
+2026-05-17 11:26:07 [Info] Staging results exported to B:\src_b2\New_Way_to_INF_Install\OUTPUT\20260517_112526\StagedDriverResults.csv
+2026-05-17 11:26:40 [Info] Step 3: Parsing INF metadata...

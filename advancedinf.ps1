@@ -18,7 +18,7 @@ $ErrorActionPreference = "SilentlyContinue"
 
 # ---------------- LOAD CONFIG (JSON) ----------------
 $defaultConfig = @{
-    DriverRoot        = "C:\Drivers"
+    DriverRoot        = "C:\Driver"
     DryRunStaging     = $true
     DryRunRemoval     = $true
     BackupBeforeDelete= $false
@@ -91,6 +91,11 @@ $RunAsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.Windows
     [Security.Principal.WindowsBuiltInRole] "Administrator"
 )
 
+################ NOTE NF DEBUG ONLY! ######################################################################
+# Make it THINK it is running as admin. 
+# I don't need admin for this debug. rather keep process in the ide and debug.
+$RunAsAdmin = $true
+
 $runningInService = $env:SESSIONNAME -eq "Services"
 
 if (-not $RunAsAdmin -and -not $runningInService) {
@@ -145,12 +150,9 @@ function Remove-StagedDriversFromCsv {
     param(
         [Parameter(Mandatory=$true)]
         [string]$CsvPath,
-
         [switch]$DryRun,
-
         [switch]$BackupBeforeDelete
     )
-
     if (-not (Test-Path $CsvPath)) {
         Write-InternalLog -Message "CSV file not found: $CsvPath" -Level "Error"
         throw "CSV file not found: $CsvPath"
@@ -173,14 +175,12 @@ function Remove-StagedDriversFromCsv {
         if ($row.Result -match 'Published Name:\s+([^\s]+)') {
             $publishedName = $matches[1]
         }
-
         if (-not $publishedName) {
             Write-InternalLog -Message "Could not extract Published Name from row: $($row.INF)" -Level "Warning"
             continue
         }
 
         Write-InternalLog -Message "Processing removal for $publishedName" -Level "Info"
-
         if ($BackupBeforeDelete) {
             $sourcePath = Join-Path "$env:windir\INF" $publishedName
             $backupPath = Join-Path $BackupDir $publishedName
@@ -203,7 +203,12 @@ function Remove-StagedDriversFromCsv {
     Write-InternalLog -Message "Driver removal from CSV completed." -Level "Info"
 }
 
-# ---------------- STEP 1: ENUMERATE INFs ----------------
+# ===============================================================
+# MAIN WORKFLOW
+# ===============================================================
+# ----------------------------------------
+# STEP 1: ENUMERATE INFs
+# ----------------------------------------
 Write-InternalLog -Message "Step 1: Enumerating all INF files under $DriverRoot..." -Level "Info"
 
 $allInfs = Get-ChildItem -Path $DriverRoot -Recurse -Filter "*.inf" |
@@ -214,7 +219,9 @@ $allInfs | Export-Csv -Path $allInfsCsv -NoTypeInformation
 
 Write-InternalLog -Message "Found $($allInfs.Count) INFs. Exported to $allInfsCsv" -Level "Info"
 
-# ---------------- STEP 2: STAGE DRIVERS ----------------
+# ---------------------------------
+# STEP 2: STAGE DRIVERS
+# ---------------------------------
 Write-InternalLog -Message "Step 2: Staging drivers. DryRunStaging=$DryRunStaging" -Level "Info"
 
 $stagingResults = foreach ($inf in $allInfs) {
@@ -244,7 +251,9 @@ $stagedCsv = Join-Path $SessionDir "StagedDriverResults.csv"
 $stagingResults | Export-Csv -Path $stagedCsv -NoTypeInformation
 Write-InternalLog -Message "Staging results exported to $stagedCsv" -Level "Info"
 
-# ---------------- STEP 3: INF METADATA / APPLICABILITY ----------------
+# ----------------------------------------
+# STEP 3: INF METADATA / APPLICABILITY
+# ----------------------------------------
 Write-InternalLog -Message "Step 3: Parsing INF metadata..." -Level "Info"
 
 $systemHWIDs = Get-PnpDevice | ForEach-Object {
@@ -275,7 +284,9 @@ $infApplicabilityCsv = Join-Path $SessionDir "INF_Applicability.csv"
 $results | Export-Csv -Path $infApplicabilityCsv -NoTypeInformation
 Write-InternalLog -Message "INF applicability exported to $infApplicabilityCsv" -Level "Info"
 
-# ---------------- STEP 4: ENUM-DRIVERS ----------------
+# ---------------------------------
+# STEP 4: ENUM-DRIVERS
+# ---------------------------------
 Write-InternalLog -Message "Step 4: Running pnputil /enum-drivers..." -Level "Info"
 
 $enumResult = Invoke-PnpUtil -Arguments "/enum-drivers /class *" -Stage "EnumDrivers"
@@ -284,7 +295,9 @@ Set-Content -Path $enumFile -Value $enumResult.StdOut
 
 Write-InternalLog -Message "Driver store enumeration saved to $enumFile" -Level "Info"
 
-# ---------------- STEP 5: RANK BY BEST MATCH ----------------
+# ---------------------------------
+# STEP 5: RANK BY BEST MATCH 
+# ---------------------------------
 Write-InternalLog -Message "Step 5: Ranking applicable INFs..." -Level "Info"
 
 $ranked = Import-Csv $infApplicabilityCsv |
@@ -296,7 +309,9 @@ $ranked | Export-Csv -Path $rankedCsv -NoTypeInformation
 
 Write-InternalLog -Message "Ranked applicability exported to $rankedCsv" -Level "Info"
 
-# ---------------- STEP 6: CLEANUP NON-APPLICABLE ----------------
+# ---------------------------------
+# STEP 6: CLEANUP NON-APPLICABLE
+# ---------------------------------
 Write-InternalLog -Message "Step 6: Cleanup. DryRunRemoval=$DryRunRemoval BackupBeforeDelete=$BackupBeforeDelete" -Level "Info"
 
 Remove-StagedDriversFromCsv -CsvPath $stagedCsv -DryRun:$DryRunRemoval -BackupBeforeDelete:$BackupBeforeDelete
